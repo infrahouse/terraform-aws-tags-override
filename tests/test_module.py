@@ -1,19 +1,9 @@
 import json
-from base64 import b64decode
 from os import path as osp
-from pprint import pprint
 from textwrap import dedent
 
 import pytest
-from infrahouse_toolkit.terraform import terraform_apply
-from mimeparse import parse_mime_type
-from yaml import load, Loader
-
-from tests.conftest import (
-    LOG,
-    TRACE_TERRAFORM,
-    DESTROY_AFTER,
-)
+from pytest_infrahouse import terraform_apply
 
 
 @pytest.mark.parametrize(
@@ -33,7 +23,7 @@ from tests.conftest import (
         ),
     ],
 )
-def test_module(tags, overrides, expected_result):
+def test_module(tags, overrides, expected_result, keep_after):
     terraform_dir = "test_data"
     module_dir = osp.join(terraform_dir, "test_module")
 
@@ -49,9 +39,8 @@ def test_module(tags, overrides, expected_result):
 
     with terraform_apply(
         module_dir,
-        destroy_after=DESTROY_AFTER,
+        destroy_after=not keep_after,
         json_output=True,
-        enable_trace=TRACE_TERRAFORM,
     ) as tf_output:
         print(tf_output)
         assert tf_output["result"]["value"] == expected_result
